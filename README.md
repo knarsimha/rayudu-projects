@@ -11,9 +11,22 @@
 
 ## Troubleshooting
 
-If you encounter an error like **"image media type is required"** when working with APIs (e.g., OpenAI Vision API, GitHub Copilot), please refer to our [Troubleshooting Guide](TROUBLESHOOTING.md) for detailed solutions and examples.
+### ⚠️ Error: "image media type is required"
 
-**Quick fix:** Run the example script to see the correct format:
+If you encounter this error when working with APIs (e.g., OpenAI Vision API, GitHub Copilot):
+
+**Quick Start:** See [QUICK_START.md](QUICK_START.md) for immediate solutions
+
+**Detailed Guide:** Read [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for comprehensive examples
+
+**Test Your Fix:**
 ```bash
 python fix_image_api_example.py --image path/to/your/image.jpg
+```
+
+**Key Fix:** Always include `"type"` fields in API requests:
+```python
+# ✅ Correct format
+{"type": "text", "text": "..."}
+{"type": "image_url", "image_url": {"url": "..."}}
 ```
