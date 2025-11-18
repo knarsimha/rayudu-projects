@@ -35,7 +35,10 @@ def get_image_media_type(image_path: str) -> str:
         '.tiff': 'image/tiff',
         '.tif': 'image/tiff',
     }
-    return media_types.get(extension, 'image/jpeg')
+    if extension not in media_types:
+        print(f"Warning: Unrecognized image extension '{extension}' for file '{image_path}'.", file=sys.stderr)
+        raise ValueError(f"Unsupported image extension: '{extension}'")
+    return media_types[extension]
 
 
 def encode_image_to_base64(image_path: str) -> Optional[str]:
@@ -54,8 +57,12 @@ def encode_image_to_base64(image_path: str) -> Optional[str]:
     except FileNotFoundError:
         print(f"Error: Image file not found: {image_path}")
         return None
-    except Exception as e:
-        print(f"Error encoding image: {e}")
+    except PermissionError:
+        print(f"Error: Permission denied when accessing image file: {image_path}")
+        return None
+    except IsADirectoryError:
+        print(f"Error: Expected a file but got a directory: {image_path}")
+        return None
         return None
 
 
@@ -190,13 +197,12 @@ def demonstrate_correct_format(image_path: str, prompt: str):
         # Show a truncated version for readability
         import json
         display_payload = payload.copy()
-        if display_payload["messages"][0]["content"][1]["image_url"]["url"].startswith("data:"):
-            base64_part = display_payload["messages"][0]["content"][1]["image_url"]["url"]
-            # Truncate the base64 string for display
-            if len(base64_part) > 100:
-                media_type = base64_part.split(';')[0]
-                display_payload["messages"][0]["content"][1]["image_url"]["url"] = f"{media_type};base64,...[truncated]..."
-        
+        data_uri = display_payload["messages"][0]["content"][1]["image_url"]["url"]
+        # Truncate the base64 string for display
+        parts = data_uri.split(',', 1)
+        if len(parts) == 2 and len(parts[1]) > 100:
+            media_type = parts[0]
+            display_payload["messages"][0]["content"][1]["image_url"]["url"] = f"{media_type},...[truncated]..."        
         print(json.dumps(display_payload, indent=2))
         print("\n✓ This format includes the 'type' field and will work correctly!")
         
